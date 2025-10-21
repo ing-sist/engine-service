@@ -1,4 +1,4 @@
-package ing_sist.engine_service
+package ingsist.engine
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class EngineServiceApplication
 
 fun main(args: Array<String>) {
-	runApplication<EngineServiceApplication>(*args)
+    runApplication<EngineServiceApplication>(args = args)
 }
