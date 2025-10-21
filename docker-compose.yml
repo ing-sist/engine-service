@@ -10,11 +10,11 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: engine-db
-      DB_HOST: postgres_db
+      DB_HOST: engine-postgres_db
       DB_PORT: 5432
 
   db:
-    container_name: postgres_db
+    container_name: engine-postgres_db
     image: postgres:17.6
     ports:
       - "5432:5432"
