@@ -54,7 +54,7 @@ jobs:
 
           TAG_LATEST="${TAG_PREFIX}-latest"
           TAG_SHA="${TAG_PREFIX}-${SHORT_SHA}"
-
+          
           echo " - $IMAGE_BASE:$TAG_LATEST"
           echo " - $IMAGE_BASE:$TAG_SHA"
 
