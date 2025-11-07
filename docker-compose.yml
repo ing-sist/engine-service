@@ -14,7 +14,7 @@ services:
     container_name: engine-postgres-db
     image: postgres:17.6
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
