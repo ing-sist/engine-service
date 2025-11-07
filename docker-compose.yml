@@ -1,28 +1,25 @@
 services:
-  api:
-    container_name: "engine-api"
+  server:
+    container_name: "engine-service"
     build:
       context: .
-      dockerfile: Dockerfile
     ports:
-      - "8000:8080"
-    environment:
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: engine-db
-      DB_HOST: engine-postgres_db
-      DB_PORT: 5432
+      - "8081:8081"
+    env_file:
+      - .env
+    depends_on:
+      - db
 
   db:
-    container_name: engine-postgres_db
+    container_name: engine-postgres-db
     image: postgres:17.6
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: engine-db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
 volumes:
-  pgdata:
+  postgres-data:
