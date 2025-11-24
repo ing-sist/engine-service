@@ -24,6 +24,8 @@ jobs:
           distribution: "corretto"
 
       - name: Build Gradle
-        run: ./gradlew build
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
+        run: ./gradlew clean build
 
 
