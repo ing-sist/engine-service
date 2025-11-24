@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - develop
+      - dev
       - '**'
 
 env:
@@ -58,7 +58,11 @@ jobs:
           echo " - $IMAGE_BASE:$TAG_LATEST"
           echo " - $IMAGE_BASE:$TAG_SHA"
 
-          docker build -t "$IMAGE_BASE:$TAG_LATEST" .
+          docker build \ 
+            --build-arg GPR_USER=${{ github.actor }} \
+            --build-arg GPR_KEY=${{ secrets.TOKEN }} \
+            -t "$IMAGE_BASE:$TAG_LATEST" .
+          
           docker tag "$IMAGE_BASE:$TAG_LATEST" "$IMAGE_BASE:$TAG_SHA"
 
           docker push "$IMAGE_BASE:$TAG_LATEST"

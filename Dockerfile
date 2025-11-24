@@ -2,13 +2,14 @@ FROM gradle:8.5.0-jdk21 AS build
 COPY  . /home/gradle/src
 WORKDIR /home/gradle/src
 
-ARG USERNAME
-ARG TOKEN
+ARG GPR_USER
+ARG GPR_KEY
 
-ENV USERNAME=$USERNAME
-ENV TOKEN=$TOKEN
+#Uso los argumentos solo para este comando especifico y no exponer los env
+RUN gradle assemble \
+    -Pgpr.user=$GPR_USER \
+    -Pgpr.key=$GPR_KEY \
 
-RUN gradle assemble
 FROM eclipse-temurin:21-jre
 
 EXPOSE 8081
