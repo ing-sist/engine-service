@@ -8,7 +8,9 @@ ARG GPR_USER
 ARG GPR_KEY
 
 # Usamos los args como propiedades que tu build.gradle ya sabe leer
-RUN gradle assemble \
+RUN gradle --version
+
+RUN gradle --no-daemon --stacktrace --info assemble \
     -Pgpr.user=$GPR_USER \
     -Pgpr.key=$GPR_KEY
 
