@@ -2,6 +2,12 @@ FROM gradle:8.5.0-jdk21 AS build
 COPY  . /home/gradle/src
 WORKDIR /home/gradle/src
 
+ARG USERNAME
+ARG TOKEN
+
+ENV USERNAME=$USERNAME
+ENV TOKEN=$TOKEN
+
 RUN gradle assemble
 FROM eclipse-temurin:21-jre
 
