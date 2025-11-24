@@ -2,7 +2,7 @@ name: CD
 
 on:
   push:
-    branches: ["main", "dev", "feature/runner"]
+    branches: ["main", "dev"]
 
 jobs:
   build-and-push-image:
@@ -31,8 +31,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/ing-sist/engine-service:dev-latest
-            ghcr.io/ing-sist/engine-service:dev-${{ github.sha }}
+            ghcr.io/ing-sist/engine-service:${{ github.ref_name }}-latest
+            ghcr.io/ing-sist/engine-service:${{ github.ref_name }}-${{ github.sha }}
           build-args: |
             GPR_USER=${{ secrets.USERNAME }}
             GPR_KEY=${{ secrets.TOKEN }}
