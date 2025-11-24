@@ -33,6 +33,6 @@ jobs:
           tags: |
             ghcr.io/ing-sist/engine-service:dev-latest
             ghcr.io/ing-sist/engine-service:dev-${{ github.sha }}
-          build-args:
+          build-args: |
             GPR_USER=${{ secrets.USERNAME }}
             GPR_KEY=${{ secrets.TOKEN }}
