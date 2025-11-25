@@ -1,0 +1,202 @@
+package ingsist.engine.runner.service
+
+import Diagnostic
+import PrintScriptEngine
+import Report
+import ingsist.engine.runner.dto.ExecuteReqDTO
+import ingsist.engine.runner.dto.ExecuteResDTO
+import ingsist.engine.runner.dto.FormatReqDTO
+import ingsist.engine.runner.dto.FormatResDTO
+import ingsist.engine.runner.dto.LintReqDTO
+import ingsist.engine.runner.dto.LintResDTO
+import ingsist.engine.runner.dto.ValidateReqDto
+import ingsist.engine.runner.dto.ValidateResDto
+import ingsist.engine.runner.utils.FileAdapter
+import ingsist.engine.runner.utils.exception.ProcessException
+import ingsist.engine.runner.utils.exception.ValidationException
+import language.errors.InterpreterException
+import org.springframework.stereotype.Service
+import progress.ProgressReporter
+import java.io.IOException
+
+@Service
+class RunnerServiceImpl(
+    private val progressReporter: ProgressReporter,
+    private val fileAdapter: FileAdapter,
+) : RunnerService {
+    private val lintRuleKeyMapping =
+        mapOf(
+            "identifier-naming" to "identifierNamingType",
+            "identifierNamingType" to "identifierNamingType",
+            "println-simple-arg" to "printlnSimpleArg",
+            "printlnSimpleArg" to "printlnSimpleArg",
+            "read-input-simple-arg" to "readInputSimpleArg",
+            "readInputSimpleArg" to "readInputSimpleArg",
+        )
+
+    private val defaultLintRuleValues =
+        mapOf(
+            "identifierNamingType" to "camel",
+            "printlnSimpleArg" to "true",
+            "readInputSimpleArg" to "true",
+        )
+
+    override fun lintSnippet(req: LintReqDTO): LintResDTO {
+        val rulesMap = createLintConfigMap(req.rules)
+
+        val response =
+            fileAdapter.withTempFiles(
+                req.content,
+                rulesMap,
+            ) { codeFile, configFile ->
+                val engine = createEngine(req.version)
+                engine.setAnalyzerConfig(configFile.absolutePath)
+                val report = engine.analyze(codeFile.absolutePath, progressReporter)
+
+                mapReportToLintResponse(req.snippetId, report)
+            }
+
+        return response
+    }
+
+    override fun formatSnippet(req: FormatReqDTO): FormatResDTO {
+        val response =
+            fileAdapter.withTempFiles(req.content, req.config) { codeFile, configFile ->
+                val engine =
+                    try {
+                        createEngine(req.version)
+                    } catch (e: IllegalArgumentException) {
+                        throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
+                    }
+                engine.setFormatterConfig(configFile.absolutePath)
+
+                var formattedContent: String
+                val errors = mutableListOf<String>()
+
+                try {
+                    formattedContent = engine.format(codeFile.absolutePath, progressReporter)
+                } catch (e: IllegalStateException) {
+                    throw ProcessException("Error al formatear: ${e.message}", e)
+                } catch (e: IOException) {
+                    throw ProcessException("Error de I/O al formatear: ${e.message}", e)
+                }
+
+                FormatResDTO(req.snippetId, formattedContent, errors)
+            }
+
+        return response
+    }
+
+    override fun executeSnippet(req: ExecuteReqDTO): ExecuteResDTO {
+        val response =
+            fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
+                val engine =
+                    try {
+                        createEngine(req.version)
+                    } catch (e: IllegalArgumentException) {
+                        throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
+                    }
+                val outputs = mutableListOf<String>()
+                val errors = mutableListOf<String>()
+
+                try {
+                    val output = engine.execute(codeFile.absolutePath, progressReporter)
+                    if (output.isNotEmpty()) {
+                        outputs.addAll(output.lines())
+                    }
+                } catch (e: InterpreterException) {
+                    errors.add(e.message ?: "Error de ejecución desconocido")
+                } catch (e: IOException) {
+                    throw ProcessException("Error al leer/escribir archivo de ejecución", e)
+                }
+
+                ExecuteResDTO(req.snippetId, outputs, errors)
+            }
+
+        return response
+    }
+
+    override fun validateSnippet(req: ValidateReqDto): ValidateResDto {
+        val response =
+            fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
+                val engine =
+                    try {
+                        createEngine(req.version)
+                    } catch (e: IllegalArgumentException) {
+                        throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
+                    }
+
+                try {
+                    engine.validateSyntax(codeFile.absolutePath, progressReporter)
+                    ValidateResDto(req.snippetId, emptyList())
+                } catch (e: IllegalStateException) {
+                    // 'validateSyntax' lanza 'error()'
+                    throw ValidationException(e.message ?: "Error de validación desconocido", e)
+                } catch (e: IOException) {
+                    throw ProcessException("Error de I/O durante la validación", e)
+                }
+            }
+        return response
+    }
+
+    private fun createEngine(version: String): PrintScriptEngine {
+        return PrintScriptEngine().apply {
+            setVersion(version)
+        }
+    }
+
+    private fun createLintConfigMap(rules: List<Map<String, Any>>): Map<String, String> {
+        val resolvedRules = defaultLintRuleValues.toMutableMap()
+
+        rules.forEach { rule ->
+            val incomingId = rule["id"]?.toString() ?: return@forEach
+            val canonicalId = lintRuleKeyMapping[incomingId] ?: incomingId
+            val value = extractRuleValue(rule, canonicalId) ?: return@forEach
+            resolvedRules[canonicalId] = value
+        }
+
+        return resolvedRules
+    }
+
+    private fun extractRuleValue(
+        rule: Map<String, Any>,
+        canonicalId: String,
+    ): String? {
+        val rawValue =
+            when {
+                rule.containsKey("value") -> rule["value"]
+                rule.containsKey("enabled") -> rule["enabled"]
+                rule.containsKey("config") -> rule["config"]
+                else -> null
+            }
+
+        val normalized =
+            rawValue
+                ?.toString()
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?: return null
+
+        val sanitized =
+            when (canonicalId) {
+                "identifierNamingType" -> normalized.lowercase()
+                else -> normalized.lowercase()
+            }
+
+        return sanitized
+    }
+
+    private fun mapReportToLintResponse(
+        snippetId: java.util.UUID,
+        report: Report,
+    ): LintResDTO {
+        val diagnosticsList = mutableListOf<Diagnostic>()
+        report.forEach { diagnosticsList.add(it) }
+
+        val reportStrings =
+            diagnosticsList.map {
+                "L${it.location.line}: ${it.message} (${it.type})"
+            }
+        return LintResDTO(snippetId, reportStrings)
+    }
+}

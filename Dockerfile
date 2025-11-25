@@ -1,14 +1,23 @@
-FROM gradle:8.5.0-jdk21 AS build
-COPY  . /home/gradle/src
-WORKDIR /home/gradle/src
+FROM eclipse-temurin:21-jdk AS build
 
-RUN gradle assemble
+WORKDIR /workspace
+COPY . .
+
+# Args para credenciales de GitHub Packages
+ARG GPR_USER
+ARG GPR_KEY
+
+# Aseguramos que el wrapper sea ejecutable y construimos el jar ejecutable
+RUN chmod +x ./gradlew \
+    && ./gradlew --no-daemon bootJar \
+        -Pgpr.user=$GPR_USER \
+        -Pgpr.key=$GPR_KEY
+
 FROM eclipse-temurin:21-jre
 
+WORKDIR /app
 EXPOSE 8081
 
-RUN mkdir /app
+COPY --from=build /workspace/build/libs/*.jar /app/spring-boot-application.jar
 
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/spring-boot-application.jar
-
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=production","/app/spring-boot-application.jar"]
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=production", "/app/spring-boot-application.jar"]
