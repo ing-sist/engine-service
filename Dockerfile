@@ -7,11 +7,12 @@ COPY . .
 ARG GPR_USER
 ARG GPR_KEY
 
+ENV GPR_USER=$GPR_USER
+ENV GPR_KEY=$GPR_KEY
+
 # Aseguramos que el wrapper sea ejecutable y construimos el jar ejecutable
 RUN chmod +x ./gradlew \
-    && ./gradlew --no-daemon bootJar \
-        -Pgpr.user=$GPR_USER \
-        -Pgpr.key=$GPR_KEY
+    && ./gradlew --no-daemon bootJar
 
 FROM eclipse-temurin:21-jre
 
