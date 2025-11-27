@@ -24,6 +24,17 @@ repositories {
             password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
         }
     }
+
+    // redis packages
+    maven {
+        url = uri("https://maven.pkg.github.com/austral-ingsis/class-redis-streams")
+        credentials {
+            username = findProperty("gpr.user") as String
+                    ?: System.getenv("GITHUB_ACTOR")
+            password = findProperty("gpr.key")  as String
+                    ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 java {
@@ -58,6 +69,9 @@ dependencies {
     psModules.each { module ->
         implementation("org.printscript:${module}:${psVersion}")
     }
+
+    // Redis
+    implementation("org.austral.ingsis:redis-streams-mvc:0.1.13")
 }
 
 kotlin {
