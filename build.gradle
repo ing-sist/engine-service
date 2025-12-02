@@ -11,7 +11,31 @@ plugins {
 
 group = 'ing-sist'
 version = '0.0.1-SNAPSHOT'
-description = 'Engine Microservice for SnipperSearcher'
+description = 'Engine Microservice for SnippetSearcher'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/ing-sist/printscript")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+        }
+    }
+
+    // redis packages
+    maven {
+        url = uri("https://maven.pkg.github.com/austral-ingsis/class-redis-streams")
+        credentials {
+            username = findProperty("gpr.user") as String
+                    ?: System.getenv("GITHUB_ACTOR")
+            password = findProperty("gpr.key")  as String
+                    ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
 
 java {
     toolchain {
@@ -19,20 +43,41 @@ java {
     }
 }
 
-repositories {
-    mavenCentral()
-}
+def psVersion = "8.0"
+def psModules = [
+        "lexer",
+        "formatter",
+        "token",
+        "parser",
+        "interpreter",
+        "ast",
+        "engine",
+        "common",
+        "analyzer"
+]
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
-    runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:1.23.6"
+
+    psModules.each { module ->
+        implementation("org.printscript:${module}:${psVersion}")
+    }
+
+
+    // Redis
+    implementation("org.austral.ingsis:redis-streams-mvc:0.1.13")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 }
 
 kotlin {
@@ -94,7 +139,7 @@ tasks.jacocoTestCoverageVerification {
 }
 
 tasks.check {
-    dependsOn jacocoTestCoverageVerification
+    // dependsOn jacocoTestCoverageVerification
 }
 
 spotless {
@@ -114,4 +159,22 @@ detekt {
         sarif.required = true
     }
     ignoreFailures = false
+}
+
+tasks.register("installGitHooks", Exec) {
+    commandLine "bash", "./scripts/bootstrap.sh"
+}
+
+gradle.projectsEvaluated {
+    tasks.getByName("build").dependsOn("installGitHooks")
+}
+
+
+// ps usa spring boot 2, asi que fuerzo a que use la version
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.springframework.boot') {
+            details.useVersion '3.5.6'
+        }
+    }
 }

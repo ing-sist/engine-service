@@ -1,5 +1,4 @@
-name: CI with Gradle
-
+name: CI
 on:
   push:
     branches:
@@ -24,6 +23,12 @@ jobs:
           distribution: "corretto"
 
       - name: Build Gradle
-        run: ./gradlew build
+#        env:
+#          USERNAME: ${{ secrets.USERNAME }}
+#          TOKEN: ${{ secrets.TOKEN }}
+        run: ./gradlew clean build
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
