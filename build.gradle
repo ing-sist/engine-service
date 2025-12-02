@@ -66,18 +66,10 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:1.23.6"
 
-//    psModules.each { module ->
-//        implementation("org.printscript:${module}:${psVersion}")
-//    }
-
     psModules.each { module ->
-        implementation("org.printscript:${module}:${psVersion}") {
-            // ADD THESE LINES 👇
-            exclude group: 'org.springframework.boot'
-            exclude group: 'org.springframework'
-            exclude group: 'ch.qos.logback' // Optional: often causes logging conflicts too
-        }
+        implementation("org.printscript:${module}:${psVersion}")
     }
+
 
     // Redis
     implementation("org.austral.ingsis:redis-streams-mvc:0.1.13")
@@ -177,13 +169,11 @@ gradle.projectsEvaluated {
     tasks.getByName("build").dependsOn("installGitHooks")
 }
 
-// ... end of your file ...
 
+// ps usa spring boot 2, asi que fuerzo a que use la version
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        // If PrintScript asks for "spring-boot-starter" version 2.7.x...
         if (details.requested.group == 'org.springframework.boot') {
-            // ... we say "NO! Use 3.5.6!"
             details.useVersion '3.5.6'
         }
     }

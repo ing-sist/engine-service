@@ -11,29 +11,32 @@ class AssetService(private val assetRestClient: RestClient) : AssetServiceInterf
         key: String,
         content: String,
     ): String {
-        assetRestClient.post()
-            .uri("/v1/asset/{container}/{key}", container, key)
-            .body(content)
-            .retrieve()
-            .onStatus({ status -> status.isError }) { _, response ->
-                throw ExternalServiceException("Asset upload failed with status code: ${response.statusCode}")
-            }
-            .toBodilessEntity()
-        return "Asset uploaded successfully in $container with key $key"
+        val response =
+            assetRestClient.put()
+                .uri("/v1/asset/{container}/{key}", container, key)
+                .body(content)
+                .retrieve()
+                .toEntity(String::class.java)
+        return when (response.statusCode.value()) {
+            201 -> "Asset uploaded successfully in $container with key $key"
+            200 -> "Asset updated successfully in $container with key $key"
+            else -> throw ExternalServiceException("Asset upload failed with status code: ${response.statusCode}")
+        }
     }
 
     override fun delete(
         container: String,
         key: String,
     ): String {
-        assetRestClient.delete()
-            .uri("/v1/asset/{container}/{key}", container, key)
-            .retrieve()
-            .onStatus({ status -> status.isError }) { _, response ->
-                throw ExternalServiceException("Asset deleted failed with status code: ${response.statusCode}")
-            }
-            .toBodilessEntity()
-        return "Asset deleted successfully in $container with key $key"
+        val response =
+            assetRestClient.delete()
+                .uri("/v1/asset/{container}/{key}", container, key)
+                .retrieve()
+                .toEntity(String::class.java)
+        return when (response.statusCode.value()) {
+            201 -> "Asset deleted successfully in $container with key $key"
+            else -> throw ExternalServiceException("Asset deleted failed with status code: ${response.statusCode}")
+        }
     }
 
     override fun get(
@@ -50,21 +53,5 @@ class AssetService(private val assetRestClient: RestClient) : AssetServiceInterf
                 .toEntity(String::class.java)
 
         return response.body ?: throw ExternalServiceException("Asset content is empty")
-    }
-
-    override fun update(
-        container: String,
-        key: String,
-        content: String,
-    ): String {
-        assetRestClient.patch()
-            .uri("/v1/asset/{container}/{key}", container, key)
-            .body(content)
-            .retrieve()
-            .onStatus({ status -> status.isError }) { _, response ->
-                throw ExternalServiceException("Asset updated failed with status code: ${response.statusCode}")
-            }
-            .toBodilessEntity()
-        return "Asset updated successfully in $container with key $key"
     }
 }
