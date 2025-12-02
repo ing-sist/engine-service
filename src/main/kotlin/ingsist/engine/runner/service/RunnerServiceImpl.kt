@@ -3,6 +3,7 @@ package ingsist.engine.runner.service
 import Diagnostic
 import PrintScriptEngine
 import Report
+import com.fasterxml.jackson.databind.ObjectMapper
 import ingsist.engine.asset.AssetService
 import ingsist.engine.runner.dto.ExecuteReqDTO
 import ingsist.engine.runner.dto.ExecuteResDTO
@@ -26,6 +27,7 @@ class RunnerServiceImpl(
     private val progressReporter: ProgressReporter,
     private val fileAdapter: FileAdapter,
     private val assetService: AssetService,
+    private val objectMapper: ObjectMapper,
 ) : RunnerService {
     private val lintRuleKeyMapping =
         mapOf(
@@ -63,8 +65,9 @@ class RunnerServiceImpl(
     }
 
     override fun formatSnippet(req: FormatReqDTO): FormatResDTO {
+        val configMap = objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
         val response =
-            fileAdapter.withTempFiles(req.content, req.config) { codeFile, configFile ->
+            fileAdapter.withTempFiles(req.content, configMap) { codeFile, configFile ->
                 val engine =
                     try {
                         createEngine(req.version)
@@ -144,27 +147,6 @@ class RunnerServiceImpl(
         return response
     }
 
-    override fun formatAndSaveSnippet(snippetId: UUID) {
-        TODO("Not yet implemented")
-    }
-
-//    override fun formatAndSaveSnippet(snippetId: UUID) {
-//        val assetKey = "snippet-$snippetId.ps"
-//        val snippetCode = assetService.get("snippets", assetKey)
-//        // Load snippet code from bucket
-//        val config = "buscarlo con un endpoint a snippets"
-//        val version = "1.0"
-//        formatSnippet(
-//            FormatReqDTO(
-//                snippetId,
-//                assetKey,
-//                snippetCode,
-//                config,
-//                version,
-//            ),
-//        )
-//    }
-
     private fun createEngine(version: String): PrintScriptEngine {
         return PrintScriptEngine().apply {
             setVersion(version)
@@ -213,7 +195,7 @@ class RunnerServiceImpl(
     }
 
     private fun mapReportToLintResponse(
-        snippetId: java.util.UUID,
+        snippetId: UUID,
         report: Report,
     ): LintResDTO {
         val diagnosticsList = mutableListOf<Diagnostic>()
