@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 
+class ExternalServiceException(message: String) : RuntimeException(message)
+
 /**
  * Manejador de excepciones global.
  * Atrapa excepciones y las convierte en respuestas HTTP JSON.

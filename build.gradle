@@ -11,7 +11,7 @@ plugins {
 
 group = 'ing-sist'
 version = '0.0.1-SNAPSHOT'
-description = 'Engine Microservice for SnipperSearcher'
+description = 'Engine Microservice for SnippetSearcher'
 
 repositories {
     mavenCentral()
@@ -66,12 +66,26 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:1.23.6"
 
+//    psModules.each { module ->
+//        implementation("org.printscript:${module}:${psVersion}")
+//    }
+
     psModules.each { module ->
-        implementation("org.printscript:${module}:${psVersion}")
+        implementation("org.printscript:${module}:${psVersion}") {
+            // ADD THESE LINES 👇
+            exclude group: 'org.springframework.boot'
+            exclude group: 'org.springframework'
+            exclude group: 'ch.qos.logback' // Optional: often causes logging conflicts too
+        }
     }
 
     // Redis
     implementation("org.austral.ingsis:redis-streams-mvc:0.1.13")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 }
 
 kotlin {
@@ -163,3 +177,14 @@ gradle.projectsEvaluated {
     tasks.getByName("build").dependsOn("installGitHooks")
 }
 
+// ... end of your file ...
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        // If PrintScript asks for "spring-boot-starter" version 2.7.x...
+        if (details.requested.group == 'org.springframework.boot') {
+            // ... we say "NO! Use 3.5.6!"
+            details.useVersion '3.5.6'
+        }
+    }
+}

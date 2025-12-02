@@ -4,6 +4,7 @@ import java.util.UUID
 
 data class ValidateReqDto(
     val snippetId: UUID,
+    val assetKey: String,
     val content: String,
     val version: String,
 )

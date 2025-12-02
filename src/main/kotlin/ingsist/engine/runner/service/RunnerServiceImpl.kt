@@ -3,6 +3,7 @@ package ingsist.engine.runner.service
 import Diagnostic
 import PrintScriptEngine
 import Report
+import ingsist.engine.asset.AssetService
 import ingsist.engine.runner.dto.ExecuteReqDTO
 import ingsist.engine.runner.dto.ExecuteResDTO
 import ingsist.engine.runner.dto.FormatReqDTO
@@ -18,11 +19,13 @@ import language.errors.InterpreterException
 import org.springframework.stereotype.Service
 import progress.ProgressReporter
 import java.io.IOException
+import java.util.UUID
 
 @Service
 class RunnerServiceImpl(
     private val progressReporter: ProgressReporter,
     private val fileAdapter: FileAdapter,
+    private val assetService: AssetService,
 ) : RunnerService {
     private val lintRuleKeyMapping =
         mapOf(
@@ -84,6 +87,7 @@ class RunnerServiceImpl(
                 FormatResDTO(req.snippetId, formattedContent, errors)
             }
 
+        assetService.upload("snippets", req.assetKey, req.content)
         return response
     }
 
@@ -136,8 +140,30 @@ class RunnerServiceImpl(
                     throw ProcessException("Error de I/O durante la validación", e)
                 }
             }
+        assetService.upload("snippets", req.assetKey, req.content)
         return response
     }
+
+    override fun formatAndSaveSnippet(snippetId: UUID) {
+        TODO("Not yet implemented")
+    }
+
+//    override fun formatAndSaveSnippet(snippetId: UUID) {
+//        val assetKey = "snippet-$snippetId.ps"
+//        val snippetCode = assetService.get("snippets", assetKey)
+//        // Load snippet code from bucket
+//        val config = "buscarlo con un endpoint a snippets"
+//        val version = "1.0"
+//        formatSnippet(
+//            FormatReqDTO(
+//                snippetId,
+//                assetKey,
+//                snippetCode,
+//                config,
+//                version,
+//            ),
+//        )
+//    }
 
     private fun createEngine(version: String): PrintScriptEngine {
         return PrintScriptEngine().apply {
