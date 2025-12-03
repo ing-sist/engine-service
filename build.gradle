@@ -170,7 +170,7 @@ gradle.projectsEvaluated {
 }
 
 
-// ps usa spring boot 2, asi que fuerzo a que use la version
+// fuerzo a que se use la version 3.5.6 de spring boot
 configurations.all {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.group == 'org.springframework.boot') {

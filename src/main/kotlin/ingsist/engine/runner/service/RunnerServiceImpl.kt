@@ -124,6 +124,11 @@ class RunnerServiceImpl(
     }
 
     override fun validateSnippet(req: ValidateReqDto): ValidateResDto {
+        println("llegue al validator")
+        println(req.content)
+        println(req.version)
+        println(req.snippetId)
+        println(req.assetKey)
         val response =
             fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
                 val engine =
