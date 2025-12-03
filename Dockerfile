@@ -17,7 +17,7 @@ RUN chmod +x ./gradlew \
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
-EXPOSE 8080
+EXPOSE 8081
 
 COPY --from=build /workspace/build/libs/*.jar /app/spring-boot-application.jar
 
