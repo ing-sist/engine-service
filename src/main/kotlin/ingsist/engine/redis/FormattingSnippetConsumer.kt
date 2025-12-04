@@ -17,7 +17,7 @@ class FormattingSnippetConsumer
     @Autowired
     constructor(
         redis: RedisTemplate<String, String>,
-        @Value("\${stream.formatting.key.key}") streamKey: String,
+        @Value("\${stream.formatting.key}") streamKey: String,
         @Value("\${groups.format}") groupId: String,
         private val formattingService: StreamService,
     ) : RedisStreamConsumer<String>(streamKey, groupId, redis) {
