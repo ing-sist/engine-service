@@ -1,4 +1,4 @@
-package ingsist.engine.runner.redis
+package ingsist.engine.redis
 
 import java.util.UUID
 

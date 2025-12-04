@@ -1,6 +1,6 @@
 package ingsist.engine.runner.dto
 
-data class ErrorResponse(
+data class ErrorResponseDto(
     val status: Int,
     val message: String?,
 )

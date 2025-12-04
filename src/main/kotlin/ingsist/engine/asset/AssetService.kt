@@ -20,7 +20,8 @@ class AssetService(private val assetRestClient: RestClient) : AssetServiceInterf
         return when (response.statusCode.value()) {
             201 -> "Asset uploaded successfully in $container with key $key"
             200 -> "Asset updated successfully in $container with key $key"
-            else -> throw ExternalServiceException("Asset upload failed with status code: ${response.statusCode}")
+            else ->
+                throw ExternalServiceException("Asset upload failed with status code: ${response.statusCode}")
         }
     }
 
@@ -35,7 +36,8 @@ class AssetService(private val assetRestClient: RestClient) : AssetServiceInterf
                 .toEntity(String::class.java)
         return when (response.statusCode.value()) {
             201 -> "Asset deleted successfully in $container with key $key"
-            else -> throw ExternalServiceException("Asset deleted failed with status code: ${response.statusCode}")
+            else ->
+                throw ExternalServiceException("Asset deleted failed with status code: ${response.statusCode}")
         }
     }
 

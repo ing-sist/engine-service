@@ -7,7 +7,7 @@ data class FormatReqDTO(
     val assetKey: String,
     val content: String,
     val version: String,
-    val config: OwnerConfigDTO,
+    val config: OwnerConfigDto,
 )
 
 data class FormatResDTO(

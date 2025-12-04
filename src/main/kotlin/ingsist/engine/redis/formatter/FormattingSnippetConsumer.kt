@@ -1,5 +1,5 @@
-package ingsist.engine.runner.redis.formatter
-import ingsist.engine.runner.redis.StreamService
+package ingsist.engine.redis.formatter
+import ingsist.engine.redis.StreamService
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.stream.StreamReceiver
 import org.springframework.stereotype.Component
 import java.time.Duration
+import java.util.UUID
 
 @Component
 @Profile("!test")
@@ -19,19 +20,21 @@ class FormattingSnippetConsumer
         @Value("\${stream.key}") streamKey: String,
         @Value("\${groups.product}") groupId: String,
         private val formattingService: StreamService,
-    ) : RedisStreamConsumer<FormatSnippetEventDTO>(streamKey, groupId, redis) {
+    ) : RedisStreamConsumer<String>(streamKey, groupId, redis) {
         override fun options(): StreamReceiver.StreamReceiverOptions<
             String,
-            ObjectRecord<String, FormatSnippetEventDTO>,
+            ObjectRecord<String, String>,
         > {
             return StreamReceiver.StreamReceiverOptions.builder()
                 .pollTimeout(Duration.ofMillis(10000))
-                .targetType(FormatSnippetEventDTO::class.java)
+                .targetType(String::class.java)
                 .build()
         }
 
-        override fun onMessage(record: ObjectRecord<String, FormatSnippetEventDTO>) {
+        override fun onMessage(record: ObjectRecord<String, String>) {
+            println("arrived")
             println("Id: ${record.id}, Stream: ${record.stream}, Group: $groupId")
-            formattingService.formatAndSaveSnippet(record.value.snippetId)
+            val uuidId = UUID.fromString(record.value)
+            formattingService.formatAndSaveSnippet(uuidId)
         }
     }

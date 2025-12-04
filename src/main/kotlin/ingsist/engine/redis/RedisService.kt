@@ -1,4 +1,4 @@
-package ingsist.engine.runner.redis
+package ingsist.engine.redis
 
 import ingsist.engine.asset.AssetService
 import ingsist.engine.config.SnippetClient
@@ -14,11 +14,11 @@ class RedisService(
     private val snippetClient: SnippetClient,
 ) : StreamService {
     override fun formatAndSaveSnippet(snippetId: UUID) {
+        val snippetMetadata = snippetClient.getSnippetMetadata(snippetId)
         val assetKey = snippetClient.getAssetKey(snippetId)
+        val version = snippetMetadata.version
         val content = assetService.get("snippets", assetKey)
         val config = snippetClient.getSnippetConfig(snippetId)
-
-        val version = snippetClient.getSnippetVersion(snippetId)
         runnerService.formatSnippet(
             FormatReqDTO(
                 snippetId,

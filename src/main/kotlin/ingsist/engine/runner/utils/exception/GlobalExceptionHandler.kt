@@ -1,6 +1,6 @@
 package ingsist.engine.runner.utils.exception
 
-import ingsist.engine.runner.dto.ErrorResponse
+import ingsist.engine.runner.dto.ErrorResponseDto
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -19,30 +19,30 @@ class GlobalExceptionHandler {
     private val logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
     @ExceptionHandler(ValidationException::class)
-    fun handleValidationException(ex: ValidationException): ResponseEntity<ErrorResponse> {
-        val errorResponse = ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.message)
+    fun handleValidationException(ex: ValidationException): ResponseEntity<ErrorResponseDto> {
+        val errorResponse = ErrorResponseDto(HttpStatus.BAD_REQUEST.value(), ex.message)
         return ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST)
     }
 
     @ExceptionHandler(ExecutionException::class)
-    fun handleExecutionException(ex: ExecutionException): ResponseEntity<ErrorResponse> {
-        val errorResponse = ErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.message)
+    fun handleExecutionException(ex: ExecutionException): ResponseEntity<ErrorResponseDto> {
+        val errorResponse = ErrorResponseDto(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.message)
         return ResponseEntity(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY)
     }
 
     @ExceptionHandler(ProcessException::class)
-    fun handleProcessException(ex: ProcessException): ResponseEntity<ErrorResponse> {
-        val errorResponse = ErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.message)
+    fun handleProcessException(ex: ProcessException): ResponseEntity<ErrorResponseDto> {
+        val errorResponse = ErrorResponseDto(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.message)
         return ResponseEntity(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY)
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponse> {
+    fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponseDto> {
         // Logueamos el error real para debugging
         logger.error("Unhandled internal server error", ex)
 
         val errorResponse =
-            ErrorResponse(
+            ErrorResponseDto(
                 status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 message = "Error interno del servidor: ${ex.javaClass.simpleName}",
             )
