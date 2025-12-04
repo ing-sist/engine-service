@@ -3,6 +3,8 @@ package ingsist.engine.runner.service
 import Diagnostic
 import PrintScriptEngine
 import Report
+import com.fasterxml.jackson.databind.ObjectMapper
+import ingsist.engine.asset.AssetService
 import ingsist.engine.runner.dto.ExecuteReqDTO
 import ingsist.engine.runner.dto.ExecuteResDTO
 import ingsist.engine.runner.dto.FormatReqDTO
@@ -18,11 +20,14 @@ import language.errors.InterpreterException
 import org.springframework.stereotype.Service
 import progress.ProgressReporter
 import java.io.IOException
+import java.util.UUID
 
 @Service
 class RunnerServiceImpl(
     private val progressReporter: ProgressReporter,
     private val fileAdapter: FileAdapter,
+    private val assetService: AssetService,
+    private val objectMapper: ObjectMapper,
 ) : RunnerService {
     private val lintRuleKeyMapping =
         mapOf(
@@ -60,8 +65,9 @@ class RunnerServiceImpl(
     }
 
     override fun formatSnippet(req: FormatReqDTO): FormatResDTO {
+        val configMap = objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
         val response =
-            fileAdapter.withTempFiles(req.content, req.config) { codeFile, configFile ->
+            fileAdapter.withTempFiles(req.content, configMap) { codeFile, configFile ->
                 val engine =
                     try {
                         createEngine(req.version)
@@ -84,6 +90,7 @@ class RunnerServiceImpl(
                 FormatResDTO(req.snippetId, formattedContent, errors)
             }
 
+        assetService.upload("snippets", req.assetKey, req.content)
         return response
     }
 
@@ -117,6 +124,11 @@ class RunnerServiceImpl(
     }
 
     override fun validateSnippet(req: ValidateReqDto): ValidateResDto {
+        println("llegue al validator")
+        println(req.content)
+        println(req.version)
+        println(req.snippetId)
+        println(req.assetKey)
         val response =
             fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
                 val engine =
@@ -136,6 +148,7 @@ class RunnerServiceImpl(
                     throw ProcessException("Error de I/O durante la validación", e)
                 }
             }
+        assetService.upload("snippets", req.assetKey, req.content)
         return response
     }
 
@@ -187,7 +200,7 @@ class RunnerServiceImpl(
     }
 
     private fun mapReportToLintResponse(
-        snippetId: java.util.UUID,
+        snippetId: UUID,
         report: Report,
     ): LintResDTO {
         val diagnosticsList = mutableListOf<Diagnostic>()

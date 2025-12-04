@@ -11,7 +11,7 @@ plugins {
 
 group = 'ing-sist'
 version = '0.0.1-SNAPSHOT'
-description = 'Engine Microservice for SnipperSearcher'
+description = 'Engine Microservice for SnippetSearcher'
 
 repositories {
     mavenCentral()
@@ -20,8 +20,19 @@ repositories {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/ing-sist/printscript")
         credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
             password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+        }
+    }
+
+    // redis packages
+    maven {
+        url = uri("https://maven.pkg.github.com/austral-ingsis/class-redis-streams")
+        credentials {
+            username = findProperty("gpr.user") as String
+                    ?: System.getenv("GITHUB_ACTOR")
+            password = findProperty("gpr.key")  as String
+                    ?: System.getenv("GITHUB_TOKEN")
         }
     }
 }
@@ -58,6 +69,15 @@ dependencies {
     psModules.each { module ->
         implementation("org.printscript:${module}:${psVersion}")
     }
+
+
+    // Redis
+    implementation("org.austral.ingsis:redis-streams-mvc:0.1.13")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 }
 
 kotlin {
@@ -149,3 +169,12 @@ gradle.projectsEvaluated {
     tasks.getByName("build").dependsOn("installGitHooks")
 }
 
+
+// fuerzo a que se use la version 3.5.6 de spring boot
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.springframework.boot') {
+            details.useVersion '3.5.6'
+        }
+    }
+}
