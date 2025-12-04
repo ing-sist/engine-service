@@ -35,6 +35,6 @@ class LintingSnippetConsumer
             println("arrived")
             println("Linting: Id: ${record.id}, Stream: ${record.stream}, Group: $groupId")
             val uuidId = UUID.fromString(record.value)
-            lintingService.formatAndSaveSnippet(uuidId)
+            lintingService.lintAndSaveSnippet(uuidId)
         }
     }
