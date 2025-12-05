@@ -1,9 +1,9 @@
 package ingsist.engine.redis
 
-import java.util.UUID
+import ingsist.engine.runner.dto.StreamReqDto
 
 interface StreamService {
-    fun formatAndSaveSnippet(snippetId: UUID)
+    fun formatAndSaveSnippet(snippet: StreamReqDto)
 
-    fun lintAndSaveSnippet(snippetId: UUID)
+    fun lintAndSaveSnippet(snippet: StreamReqDto)
 }
