@@ -1,5 +1,7 @@
 package ingsist.engine.redis
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import ingsist.engine.runner.dto.StreamReqDto
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -9,7 +11,6 @@ import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.stream.StreamReceiver
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.UUID
 
 @Component
 @Profile("!test")
@@ -20,6 +21,7 @@ class LintingSnippetConsumer
         @Value("\${stream.linting.key}") streamKey: String,
         @Value("\${groups.lint}") groupId: String,
         private val lintingService: StreamService,
+        private val objectMapper: ObjectMapper,
     ) : RedisStreamConsumer<String>(streamKey, groupId, redis) {
         override fun options(): StreamReceiver.StreamReceiverOptions<
             String,
@@ -32,7 +34,8 @@ class LintingSnippetConsumer
         }
 
         override fun onMessage(record: ObjectRecord<String, String>) {
-            val uuidId = UUID.fromString(record.value)
-            lintingService.lintAndSaveSnippet(uuidId)
+            val json = record.value
+            val dto = objectMapper.readValue(json, StreamReqDto::class.java)
+            lintingService.lintAndSaveSnippet(dto)
         }
     }

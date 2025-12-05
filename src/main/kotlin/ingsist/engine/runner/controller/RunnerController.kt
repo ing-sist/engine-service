@@ -45,7 +45,6 @@ class RunnerController(
     fun validate(
         @Valid @RequestBody req: ValidateReqDto,
     ): ResponseEntity<ValidateResDto> {
-        println("received")
         return ResponseEntity.ok(
             runnerService.validateSnippet(req),
         )
