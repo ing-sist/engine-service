@@ -1,5 +1,5 @@
-package ingsist.engine.redis.formatter
-import ingsist.engine.redis.StreamService
+package ingsist.engine.redis
+
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -13,13 +13,13 @@ import java.util.UUID
 
 @Component
 @Profile("!test")
-class FormattingSnippetConsumer
+class LintingSnippetConsumer
     @Autowired
     constructor(
         redis: RedisTemplate<String, String>,
-        @Value("\${stream.key}") streamKey: String,
-        @Value("\${groups.product}") groupId: String,
-        private val formattingService: StreamService,
+        @Value("\${stream.linting.key}") streamKey: String,
+        @Value("\${groups.lint}") groupId: String,
+        private val lintingService: StreamService,
     ) : RedisStreamConsumer<String>(streamKey, groupId, redis) {
         override fun options(): StreamReceiver.StreamReceiverOptions<
             String,
@@ -33,8 +33,8 @@ class FormattingSnippetConsumer
 
         override fun onMessage(record: ObjectRecord<String, String>) {
             println("arrived")
-            println("Id: ${record.id}, Stream: ${record.stream}, Group: $groupId")
+            println("Linting: Id: ${record.id}, Stream: ${record.stream}, Group: $groupId")
             val uuidId = UUID.fromString(record.value)
-            formattingService.formatAndSaveSnippet(uuidId)
+            lintingService.lintAndSaveSnippet(uuidId)
         }
     }

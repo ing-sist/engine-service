@@ -47,7 +47,8 @@ class RunnerServiceImpl(
         )
 
     override fun lintSnippet(req: LintReqDTO): LintResDTO {
-        val rulesMap = createLintConfigMap(req.rules)
+        val listConfig = objectMapper.convertValue(req.config, Map::class.java) as List<Map<String, Any>>
+        val rulesMap = createLintConfigMap(listConfig)
 
         val response =
             fileAdapter.withTempFiles(
