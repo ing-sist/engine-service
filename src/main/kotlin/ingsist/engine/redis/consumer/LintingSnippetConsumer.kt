@@ -1,4 +1,4 @@
-package ingsist.engine.redis
+package ingsist.engine.redis.consumer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import ingsist.engine.runner.dto.StreamReqDto
@@ -14,13 +14,13 @@ import java.time.Duration
 
 @Component
 @Profile("!test")
-class FormattingSnippetConsumer
+class LintingSnippetConsumer
     @Autowired
     constructor(
         redis: RedisTemplate<String, String>,
-        @Value("\${stream.formatting.key}") streamKey: String,
-        @Value("\${groups.format}") groupId: String,
-        private val formattingService: StreamService,
+        @Value("\${stream.linting.key}") streamKey: String,
+        @Value("\${groups.lint}") groupId: String,
+        private val lintingService: ConsumerStreamService,
         private val objectMapper: ObjectMapper,
     ) : RedisStreamConsumer<String>(streamKey, groupId, redis) {
         override fun options(): StreamReceiver.StreamReceiverOptions<
@@ -36,6 +36,6 @@ class FormattingSnippetConsumer
         override fun onMessage(record: ObjectRecord<String, String>) {
             val json = record.value
             val dto = objectMapper.readValue(json, StreamReqDto::class.java)
-            formattingService.formatAndSaveSnippet(dto)
+            lintingService.lintAndSaveSnippet(dto)
         }
     }
