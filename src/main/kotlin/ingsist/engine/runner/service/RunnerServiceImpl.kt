@@ -29,31 +29,15 @@ class RunnerServiceImpl(
     private val assetService: AssetService,
     private val objectMapper: ObjectMapper,
 ) : RunnerService {
-    private val lintRuleKeyMapping =
-        mapOf(
-            "identifier-naming" to "identifierNamingType",
-            "identifierNamingType" to "identifierNamingType",
-            "println-simple-arg" to "printlnSimpleArg",
-            "printlnSimpleArg" to "printlnSimpleArg",
-            "read-input-simple-arg" to "readInputSimpleArg",
-            "readInputSimpleArg" to "readInputSimpleArg",
-        )
-
-    private val defaultLintRuleValues =
-        mapOf(
-            "identifierNamingType" to "camel",
-            "printlnSimpleArg" to "true",
-            "readInputSimpleArg" to "true",
-        )
-
     override fun lintSnippet(req: LintReqDTO): LintResDTO {
-        val listConfig = objectMapper.convertValue(req.config, Map::class.java) as List<Map<String, Any>>
-        val rulesMap = createLintConfigMap(listConfig)
+        @Suppress("UNCHECKED_CAST")
+        val configMap =
+            objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
 
         val response =
             fileAdapter.withTempFiles(
                 req.content,
-                rulesMap,
+                configMap,
             ) { codeFile, configFile ->
                 val engine = createEngine(req.version)
                 engine.setAnalyzerConfig(configFile.absolutePath)
@@ -66,6 +50,7 @@ class RunnerServiceImpl(
     }
 
     override fun formatSnippet(req: FormatReqDTO): FormatResDTO {
+        @Suppress("UNCHECKED_CAST")
         val configMap = objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
         val response =
             fileAdapter.withTempFiles(req.content, configMap) { codeFile, configFile ->
@@ -125,11 +110,6 @@ class RunnerServiceImpl(
     }
 
     override fun validateSnippet(req: ValidateReqDto): ValidateResDto {
-        println("llegue al validator")
-        println(req.content)
-        println(req.version)
-        println(req.snippetId)
-        println(req.assetKey)
         val response =
             fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
                 val engine =
@@ -157,47 +137,6 @@ class RunnerServiceImpl(
         return PrintScriptEngine().apply {
             setVersion(version)
         }
-    }
-
-    private fun createLintConfigMap(rules: List<Map<String, Any>>): Map<String, String> {
-        val resolvedRules = defaultLintRuleValues.toMutableMap()
-
-        rules.forEach { rule ->
-            val incomingId = rule["id"]?.toString() ?: return@forEach
-            val canonicalId = lintRuleKeyMapping[incomingId] ?: incomingId
-            val value = extractRuleValue(rule, canonicalId) ?: return@forEach
-            resolvedRules[canonicalId] = value
-        }
-
-        return resolvedRules
-    }
-
-    private fun extractRuleValue(
-        rule: Map<String, Any>,
-        canonicalId: String,
-    ): String? {
-        val rawValue =
-            when {
-                rule.containsKey("value") -> rule["value"]
-                rule.containsKey("enabled") -> rule["enabled"]
-                rule.containsKey("config") -> rule["config"]
-                else -> null
-            }
-
-        val normalized =
-            rawValue
-                ?.toString()
-                ?.trim()
-                ?.takeIf { it.isNotEmpty() }
-                ?: return null
-
-        val sanitized =
-            when (canonicalId) {
-                "identifierNamingType" -> normalized.lowercase()
-                else -> normalized.lowercase()
-            }
-
-        return sanitized
     }
 
     private fun mapReportToLintResponse(

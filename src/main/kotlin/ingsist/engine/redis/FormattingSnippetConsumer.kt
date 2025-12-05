@@ -32,8 +32,6 @@ class FormattingSnippetConsumer
         }
 
         override fun onMessage(record: ObjectRecord<String, String>) {
-            println("arrived")
-            println("Formatting: Id: ${record.id}, Stream: ${record.stream}, Group: $groupId")
             val uuidId = UUID.fromString(record.value)
             formattingService.formatAndSaveSnippet(uuidId)
         }

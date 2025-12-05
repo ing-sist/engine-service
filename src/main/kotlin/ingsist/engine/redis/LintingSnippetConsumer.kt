@@ -32,8 +32,6 @@ class LintingSnippetConsumer
         }
 
         override fun onMessage(record: ObjectRecord<String, String>) {
-            println("arrived")
-            println("Linting: Id: ${record.id}, Stream: ${record.stream}, Group: $groupId")
             val uuidId = UUID.fromString(record.value)
             lintingService.lintAndSaveSnippet(uuidId)
         }
