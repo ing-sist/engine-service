@@ -1,4 +1,4 @@
-package ingsist.engine.redis
+package ingsist.engine.redis.consumer
 
 import ingsist.engine.asset.AssetService
 import ingsist.engine.runner.dto.FormatReqDTO
@@ -8,10 +8,10 @@ import ingsist.engine.runner.service.RunnerService
 import org.springframework.stereotype.Service
 
 @Service
-class RedisService(
+class RedisConsumerService(
     private val assetService: AssetService,
     private val runnerService: RunnerService,
-) : StreamService {
+) : ConsumerStreamService {
     override fun formatAndSaveSnippet(snippet: StreamReqDto) {
         val content = assetService.get("snippets", snippet.assetKey)
         runnerService.formatSnippet(

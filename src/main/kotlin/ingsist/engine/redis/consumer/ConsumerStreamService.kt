@@ -1,8 +1,8 @@
-package ingsist.engine.redis
+package ingsist.engine.redis.consumer
 
 import ingsist.engine.runner.dto.StreamReqDto
 
-interface StreamService {
+interface ConsumerStreamService {
     fun formatAndSaveSnippet(snippet: StreamReqDto)
 
     fun lintAndSaveSnippet(snippet: StreamReqDto)
