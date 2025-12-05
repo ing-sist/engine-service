@@ -212,4 +212,9 @@ class RunnerServiceImpl(
             }
         return LintResDTO(snippetId, reportStrings)
     }
+
+    override fun getSnippetCode(assetKey: String): String {
+        // Obtenemos el archivo del bucket/storage
+        return assetService.get("snippets", assetKey)
+    }
 }

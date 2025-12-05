@@ -17,4 +17,6 @@ interface RunnerService {
     fun executeSnippet(req: ExecuteReqDTO): ExecuteResDTO
 
     fun validateSnippet(req: ValidateReqDto): ValidateResDto
+
+    fun getSnippetCode(assetKey: String): String
 }
