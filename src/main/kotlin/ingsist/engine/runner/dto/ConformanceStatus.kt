@@ -1,6 +1,6 @@
 package ingsist.engine.runner.dto
 
-enum class ComplianceStatus {
+enum class ConformanceStatus {
     PENDING,
     COMPLIANT,
     NON_COMPLIANT,

@@ -9,5 +9,5 @@ data class SnippetMetadataResponseDto(
     val description: String,
     val ownerId: String,
     val version: String,
-    val compliance: String? = "pending",
+    val conformance: String? = "pending",
 )

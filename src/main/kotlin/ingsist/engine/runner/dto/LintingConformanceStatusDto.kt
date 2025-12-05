@@ -2,7 +2,7 @@ package ingsist.engine.runner.dto
 
 import java.util.UUID
 
-data class LintingComplianceStatusDto(
+data class LintingConformanceStatusDto(
     val snippetId: UUID,
-    val status: ComplianceStatus,
+    val status: ConformanceStatus,
 )

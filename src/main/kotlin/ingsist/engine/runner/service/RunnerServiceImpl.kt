@@ -5,15 +5,15 @@ import PrintScriptEngine
 import Report
 import com.fasterxml.jackson.databind.ObjectMapper
 import ingsist.engine.asset.AssetService
-import ingsist.engine.redis.producer.LintingComplianceProducer
-import ingsist.engine.runner.dto.ComplianceStatus
+import ingsist.engine.redis.producer.LintingConformanceProducer
+import ingsist.engine.runner.dto.ConformanceStatus
 import ingsist.engine.runner.dto.ExecuteReqDTO
 import ingsist.engine.runner.dto.ExecuteResDTO
 import ingsist.engine.runner.dto.FormatReqDTO
 import ingsist.engine.runner.dto.FormatResDTO
 import ingsist.engine.runner.dto.LintReqDTO
 import ingsist.engine.runner.dto.LintResDTO
-import ingsist.engine.runner.dto.LintingComplianceStatusDto
+import ingsist.engine.runner.dto.LintingConformanceStatusDto
 import ingsist.engine.runner.dto.ValidateReqDto
 import ingsist.engine.runner.dto.ValidateResDto
 import ingsist.engine.runner.utils.FileAdapter
@@ -31,7 +31,7 @@ class RunnerServiceImpl(
     private val fileAdapter: FileAdapter,
     private val assetService: AssetService,
     private val objectMapper: ObjectMapper,
-    private val lintingComplianceProducer: LintingComplianceProducer,
+    private val lintingconformanceProducer: LintingConformanceProducer,
 ) : RunnerService {
     override fun lintSnippet(req: LintReqDTO): LintResDTO {
         @Suppress("UNCHECKED_CAST")
@@ -53,12 +53,12 @@ class RunnerServiceImpl(
         val lintingStatus =
             if
                 (response.report.isEmpty()) {
-                ComplianceStatus.COMPLIANT
+                ConformanceStatus.COMPLIANT
             } else {
-                ComplianceStatus.NON_COMPLIANT
+                ConformanceStatus.NON_COMPLIANT
             }
-        lintingComplianceProducer.publishCompliance(
-            LintingComplianceStatusDto(
+        lintingconformanceProducer.publishConformance(
+            LintingConformanceStatusDto(
                 req.snippetId,
                 lintingStatus,
             ),
