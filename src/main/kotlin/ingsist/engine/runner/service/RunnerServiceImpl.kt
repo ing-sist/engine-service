@@ -174,4 +174,8 @@ class RunnerServiceImpl(
         // Obtenemos el archivo del bucket/storage
         return assetService.get("snippets", assetKey)
     }
+
+    override fun deleteSnippet(assetKey: String) {
+        assetService.delete("snippets", assetKey)
+    }
 }

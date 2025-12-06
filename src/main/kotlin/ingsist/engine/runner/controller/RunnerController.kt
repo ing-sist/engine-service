@@ -12,6 +12,7 @@ import ingsist.engine.runner.service.RunnerService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -70,5 +71,12 @@ class RunnerController(
     @GetMapping("/health")
     fun healthCheck(): ResponseEntity<String> {
         return ResponseEntity.ok("Runner Service is healthy")
+    
+    @DeleteMapping("/code/{assetKey}")
+    fun deleteSnippet(
+        @PathVariable assetKey: String,
+    ): ResponseEntity<Void> {
+        runnerService.deleteSnippet(assetKey)
+        return ResponseEntity.noContent().build()
     }
 }
