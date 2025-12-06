@@ -68,6 +68,10 @@ class RunnerController(
         return ResponseEntity.ok(code)
     }
 
+    @GetMapping("/health")
+    fun healthCheck(): ResponseEntity<String> {
+        return ResponseEntity.ok("Runner Service is healthy")
+    
     @DeleteMapping("/code/{assetKey}")
     fun deleteSnippet(
         @PathVariable assetKey: String,
