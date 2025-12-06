@@ -66,4 +66,9 @@ class RunnerController(
         val code = runnerService.getSnippetCode(assetKey)
         return ResponseEntity.ok(code)
     }
+
+    @GetMapping("/health")
+    fun health(): ResponseEntity<String> {
+        return ResponseEntity.ok("I'm alive")
+    }
 }
