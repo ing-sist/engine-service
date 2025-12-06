@@ -19,4 +19,6 @@ interface RunnerService {
     fun validateSnippet(req: ValidateReqDto): ValidateResDto
 
     fun getSnippetCode(assetKey: String): String
+
+    fun deleteSnippet(assetKey: String)
 }
