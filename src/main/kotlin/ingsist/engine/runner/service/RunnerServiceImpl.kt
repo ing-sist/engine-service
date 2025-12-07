@@ -52,6 +52,7 @@ class RunnerServiceImpl(
             fileAdapter.withTempFiles(
                 req.content,
                 configMap,
+                getLanguageExtension(req.language),
             ) { codeFile, configFile ->
                 val engine = createEngine(req.language, req.version)
                 engine.setAnalyzerConfig(configFile.absolutePath)
@@ -80,7 +81,11 @@ class RunnerServiceImpl(
         @Suppress("UNCHECKED_CAST")
         val configMap = objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
         val response =
-            fileAdapter.withTempFiles(req.content, configMap) { codeFile, configFile ->
+            fileAdapter.withTempFiles(
+                req.content,
+                configMap,
+                getLanguageExtension(req.language),
+            ) { codeFile, configFile ->
                 val engine =
                     try {
                         createEngine(req.language, req.version)
@@ -109,7 +114,7 @@ class RunnerServiceImpl(
 
     override fun executeSnippet(req: ExecuteReqDTO): ExecuteResDTO {
         val response =
-            fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
+            fileAdapter.withTempFile(req.content, getLanguageExtension(req.language)) { codeFile ->
                 val engine =
                     try {
                         createEngine(req.language, req.version)
@@ -138,7 +143,7 @@ class RunnerServiceImpl(
 
     override fun validateSnippet(req: ValidateReqDto): ValidateResDto {
         val response =
-            fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
+            fileAdapter.withTempFile(req.content, getLanguageExtension(req.language)) { codeFile ->
                 val engine =
                     try {
                         createEngine(req.language, req.version)
@@ -183,6 +188,13 @@ class RunnerServiceImpl(
         if (!langConfig.version.contains(version)) {
             throw ValidationException("Version '$version' is not supported for language '$language'.")
         }
+    }
+
+    private fun getLanguageExtension(language: String): String {
+        val langConfig =
+            supportedLanguages.find { it.name.equals(language, ignoreCase = true) }
+                ?: throw ValidationException("Language '$language' is not supported by this engine.")
+        return ".${langConfig.extension}"
     }
 
     private fun mapReportToLintResponse(
