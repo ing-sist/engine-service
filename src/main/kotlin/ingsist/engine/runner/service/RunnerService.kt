@@ -6,6 +6,7 @@ import ingsist.engine.runner.dto.FormatReqDTO
 import ingsist.engine.runner.dto.FormatResDTO
 import ingsist.engine.runner.dto.LintReqDTO
 import ingsist.engine.runner.dto.LintResDTO
+import ingsist.engine.runner.dto.SupportedLanguageDto
 import ingsist.engine.runner.dto.ValidateReqDto
 import ingsist.engine.runner.dto.ValidateResDto
 
@@ -21,4 +22,6 @@ interface RunnerService {
     fun getSnippetCode(assetKey: String): String
 
     fun deleteSnippet(assetKey: String)
+
+    fun getSupportedLanguages(): List<SupportedLanguageDto>
 }

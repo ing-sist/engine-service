@@ -6,6 +6,7 @@ import ingsist.engine.runner.dto.FormatReqDTO
 import ingsist.engine.runner.dto.FormatResDTO
 import ingsist.engine.runner.dto.LintReqDTO
 import ingsist.engine.runner.dto.LintResDTO
+import ingsist.engine.runner.dto.SupportedLanguageDto
 import ingsist.engine.runner.dto.ValidateReqDto
 import ingsist.engine.runner.dto.ValidateResDto
 import ingsist.engine.runner.service.RunnerService
@@ -66,6 +67,16 @@ class RunnerController(
     ): ResponseEntity<String> {
         val code = runnerService.getSnippetCode(assetKey)
         return ResponseEntity.ok(code)
+    }
+
+    @GetMapping("/health")
+    fun healthCheck(): ResponseEntity<String> {
+        return ResponseEntity.ok("Runner Service is healthy")
+    }
+
+    @GetMapping("/languages")
+    fun getSupportedLanguages(): ResponseEntity<List<SupportedLanguageDto>> {
+        return ResponseEntity.ok(runnerService.getSupportedLanguages())
     }
 
     @DeleteMapping("/code/{assetKey}")
