@@ -7,6 +7,7 @@ data class ValidateReqDto(
     val assetKey: String,
     val content: String,
     val version: String,
+    val language: String,
 )
 
 data class ValidateResDto(
