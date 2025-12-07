@@ -27,8 +27,10 @@ class SecurityConfig(
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .authorizeHttpRequests {
-                it.anyRequest().authenticated()
+            .authorizeHttpRequests { auth ->
+                auth
+                    .requestMatchers("/engine/health").permitAll()
+                    .anyRequest().authenticated()
             }
             .oauth2ResourceServer {
                 it.jwt { jwt ->
