@@ -11,6 +11,7 @@ import ingsist.engine.runner.dto.ValidateReqDto
 import ingsist.engine.runner.dto.ValidateResDto
 import ingsist.engine.runner.service.RunnerService
 import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -27,19 +28,22 @@ import org.springframework.web.bind.annotation.RestController
 class RunnerController(
     private val runnerService: RunnerService,
 ) {
+    val log = LoggerFactory.getLogger(RunnerController::class.java)
+
     @PostMapping("/lint")
     fun lint(
         @Valid @RequestBody req: LintReqDTO,
     ): ResponseEntity<LintResDTO> {
-        return ResponseEntity.ok(
-            runnerService.lintSnippet(req),
-        )
+        log.info("Engine Service received lint request for language: ${req.language}, version: ${req.version}")
+        val response = runnerService.lintSnippet(req)
+        return ResponseEntity.ok(response)
     }
 
     @PostMapping("/format")
     fun format(
         @Valid @RequestBody req: FormatReqDTO,
     ): FormatResDTO {
+        log.info("Engine Service receivedformat request for language: ${req.language}, version: ${req.version}")
         return runnerService.formatSnippet(req)
     }
 
@@ -47,6 +51,7 @@ class RunnerController(
     fun validate(
         @Valid @RequestBody req: ValidateReqDto,
     ): ResponseEntity<ValidateResDto> {
+        log.info("Engine Service received validation request for snippet in lan: ${req.language}, ver: ${req.version}")
         return ResponseEntity.ok(
             runnerService.validateSnippet(req),
         )
@@ -56,6 +61,7 @@ class RunnerController(
     fun execute(
         @Valid @RequestBody req: ExecuteReqDTO,
     ): ResponseEntity<ExecuteResDTO> {
+        log.info("Engine Service received execute request for language: ${req.language}, version: ${req.version}")
         return ResponseEntity.ok(
             runnerService.executeSnippet(req),
         )
@@ -65,25 +71,27 @@ class RunnerController(
     fun getSnippetCode(
         @PathVariable assetKey: String,
     ): ResponseEntity<String> {
+        log.info("Engine Service received request to get code for assetKey: $assetKey")
         val code = runnerService.getSnippetCode(assetKey)
+        log.info("Code for assetKey: $assetKey retrieved successfully")
         return ResponseEntity.ok(code)
-    }
-
-    @GetMapping("/health")
-    fun healthCheck(): ResponseEntity<String> {
-        return ResponseEntity.ok("Runner Service is healthy")
     }
 
     @GetMapping("/languages")
     fun getSupportedLanguages(): ResponseEntity<List<SupportedLanguageDto>> {
-        return ResponseEntity.ok(runnerService.getSupportedLanguages())
+        log.info("Engine Service received request to get supported languages")
+        val response = runnerService.getSupportedLanguages()
+        log.info("Supported languages retrieved successfully")
+        return ResponseEntity.ok(response)
     }
 
     @DeleteMapping("/code/{assetKey}")
     fun deleteSnippet(
         @PathVariable assetKey: String,
     ): ResponseEntity<Void> {
+        log.info("Engine Service received request to delete snippet with assetKey: $assetKey")
         runnerService.deleteSnippet(assetKey)
+        log.info("Snippet with assetKey: $assetKey deleted successfully")
         return ResponseEntity.noContent().build()
     }
 }
