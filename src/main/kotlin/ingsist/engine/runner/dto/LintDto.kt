@@ -4,9 +4,11 @@ import java.util.UUID
 
 data class LintReqDTO(
     val snippetId: UUID,
+    val assetKey: String,
     val content: String,
     val version: String,
-    val rules: List<Map<String, Any>>,
+    val language: String,
+    val config: OwnerConfigDto,
 )
 
 data class LintResDTO(

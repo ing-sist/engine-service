@@ -1,11 +1,14 @@
 package ingsist.engine.asset
 
 import ingsist.engine.runner.utils.exception.ExternalServiceException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 
 @Component
 class AssetService(private val assetRestClient: RestClient) : AssetServiceInterface {
+    val log = LoggerFactory.getLogger(AssetService::class.java)
+
     override fun upload(
         container: String,
         key: String,
@@ -18,9 +21,18 @@ class AssetService(private val assetRestClient: RestClient) : AssetServiceInterf
                 .retrieve()
                 .toEntity(String::class.java)
         return when (response.statusCode.value()) {
-            201 -> "Asset uploaded successfully in $container with key $key"
-            200 -> "Asset updated successfully in $container with key $key"
-            else -> throw ExternalServiceException("Asset upload failed with status code: ${response.statusCode}")
+            201 -> {
+                log.info("Asset uploaded successfully in $container with key $key")
+                "Asset uploaded successfully in $container with key $key"
+            }
+            200 -> {
+                log.info("Asset updated successfully in $container with key $key")
+                "Asset updated successfully in $container with key $key"
+            }
+            else -> {
+                log.error("Asset upload failed in $container with key $key, status code: ${response.statusCode}")
+                throw ExternalServiceException("Asset upload failed with status code:${response.statusCode}")
+            }
         }
     }
 
@@ -34,8 +46,14 @@ class AssetService(private val assetRestClient: RestClient) : AssetServiceInterf
                 .retrieve()
                 .toEntity(String::class.java)
         return when (response.statusCode.value()) {
-            201 -> "Asset deleted successfully in $container with key $key"
-            else -> throw ExternalServiceException("Asset deleted failed with status code: ${response.statusCode}")
+            201 -> {
+                log.info("Asset deleted successfully in $container with key $key")
+                "Asset deleted successfully in $container with key $key"
+            }
+            else -> {
+                log.error("Asset delete failed in $container with key $key, status code: ${response.statusCode}")
+                throw ExternalServiceException("Asset deleted failed with status code: ${response.statusCode}")
+            }
         }
     }
 
@@ -52,6 +70,12 @@ class AssetService(private val assetRestClient: RestClient) : AssetServiceInterf
                 }
                 .toEntity(String::class.java)
 
-        return response.body ?: throw ExternalServiceException("Asset content is empty")
+        if (response.body != null) {
+            log.info("Asset retrieved successfully from $container with key $key")
+            return response.body!!
+        } else {
+            log.error("Asset content is empty in $container with key $key")
+            throw ExternalServiceException("Asset content is empty")
+        }
     }
 }

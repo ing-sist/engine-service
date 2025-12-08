@@ -6,9 +6,9 @@ import ingsist.engine.runner.dto.FormatReqDTO
 import ingsist.engine.runner.dto.FormatResDTO
 import ingsist.engine.runner.dto.LintReqDTO
 import ingsist.engine.runner.dto.LintResDTO
+import ingsist.engine.runner.dto.SupportedLanguageDto
 import ingsist.engine.runner.dto.ValidateReqDto
 import ingsist.engine.runner.dto.ValidateResDto
-import java.util.UUID
 
 interface RunnerService {
     fun lintSnippet(req: LintReqDTO): LintResDTO
@@ -19,5 +19,9 @@ interface RunnerService {
 
     fun validateSnippet(req: ValidateReqDto): ValidateResDto
 
-    fun formatAndSaveSnippet(snippetId: UUID)
+    fun getSnippetCode(assetKey: String): String
+
+    fun deleteSnippet(assetKey: String)
+
+    fun getSupportedLanguages(): List<SupportedLanguageDto>
 }
