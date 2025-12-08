@@ -4,11 +4,11 @@ WORKDIR /workspace
 COPY . .
 
 # Args para credenciales de GitHub Packages
-ARG GPR_USER
-ARG GPR_KEY
+ARG USERNAME
+ARG TOKEN
 
-ENV GPR_USER=$GPR_USER
-ENV GPR_KEY=$GPR_KEY
+ENV USERNAME=$USERNAME
+ENV TOKEN=$TOKEN
 
 # Aseguramos que el wrapper sea ejecutable y construimos el jar ejecutable
 RUN chmod +x ./gradlew \
