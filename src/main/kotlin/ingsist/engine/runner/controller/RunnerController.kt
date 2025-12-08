@@ -86,9 +86,4 @@ class RunnerController(
         runnerService.deleteSnippet(assetKey)
         return ResponseEntity.noContent().build()
     }
-
-    @GetMapping("/health")
-    fun healthCheck(): ResponseEntity<String> {
-        return ResponseEntity.ok("Snippet Service is healthy")
-    }
 }
