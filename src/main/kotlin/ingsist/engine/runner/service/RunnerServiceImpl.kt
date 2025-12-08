@@ -21,6 +21,7 @@ import ingsist.engine.runner.utils.FileAdapter
 import ingsist.engine.runner.utils.exception.ProcessException
 import ingsist.engine.runner.utils.exception.ValidationException
 import language.errors.InterpreterException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import progress.ProgressReporter
 import java.io.IOException
@@ -34,12 +35,15 @@ class RunnerServiceImpl(
     private val objectMapper: ObjectMapper,
     private val lintingconformanceProducer: LintingConformanceProducer,
 ) : RunnerService {
+    val log = LoggerFactory.getLogger(RunnerServiceImpl::class.java)
+
     private val supportedLanguages =
         listOf(
             SupportedLanguageDto("printscript", listOf("1.0", "1.1"), "ps"),
         )
 
     override fun getSupportedLanguages(): List<SupportedLanguageDto> {
+        log.info("Engine service fetching supported languages")
         return supportedLanguages
     }
 
@@ -61,6 +65,8 @@ class RunnerServiceImpl(
                 mapReportToLintResponse(req.snippetId, report)
             }
 
+        log.info("Publishing linting conformance status for snippetId: ${req.snippetId}")
+
         val lintingStatus =
             if
                 (response.report.isEmpty()) {
@@ -74,6 +80,7 @@ class RunnerServiceImpl(
                 lintingStatus,
             ),
         )
+        log.info("Published linting conformance status for snippetId: ${req.snippetId} with status: $lintingStatus")
         return response
     }
 
@@ -88,8 +95,10 @@ class RunnerServiceImpl(
             ) { codeFile, configFile ->
                 val engine =
                     try {
+                        log.info("Created engine for language: ${req.language}, version: ${req.version}")
                         createEngine(req.language, req.version)
                     } catch (e: IllegalArgumentException) {
+                        log.error("Failed to create engine for language: ${req.language}, version: ${req.version}")
                         throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
                     }
                 engine.setFormatterConfig(configFile.absolutePath)
@@ -98,17 +107,22 @@ class RunnerServiceImpl(
                 val errors = mutableListOf<String>()
 
                 try {
+                    log.info("Formatting snippetId: ${req.snippetId}")
                     formattedContent = engine.format(codeFile.absolutePath, progressReporter)
                 } catch (e: IllegalStateException) {
+                    log.error("Formatting failed for snippetId: ${req.snippetId} with error: ${e.message}")
                     throw ProcessException("Error al formatear: ${e.message}", e)
                 } catch (e: IOException) {
+                    log.error("I/O error during formatting for snippetId: ${req.snippetId} with error: ${e.message}")
                     throw ProcessException("Error de I/O al formatear: ${e.message}", e)
                 }
 
                 FormatResDTO(req.snippetId, formattedContent, errors)
             }
 
+        log.info("Uploading formatted snippetId: ${req.snippetId} to asset service")
         assetService.upload("snippets", req.assetKey, req.content)
+        log.info("Uploaded formatted snippetId: ${req.snippetId} to asset service")
         return response
     }
 
@@ -117,27 +131,33 @@ class RunnerServiceImpl(
             fileAdapter.withTempFile(req.content, getLanguageExtension(req.language)) { codeFile ->
                 val engine =
                     try {
+                        log.info("Created engine for language: ${req.language}, version: ${req.version}")
                         createEngine(req.language, req.version)
                     } catch (e: IllegalArgumentException) {
+                        log.error("Failed to create engine for language: ${req.language}, version: ${req.version}")
                         throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
                     }
                 val outputs = mutableListOf<String>()
                 val errors = mutableListOf<String>()
 
                 try {
+                    log.info("Executing snippetId: ${req.snippetId}")
                     val output = engine.execute(codeFile.absolutePath, progressReporter)
                     if (output.isNotEmpty()) {
                         outputs.addAll(output.lines())
                     }
                 } catch (e: InterpreterException) {
+                    log.error("Execution failed for snippetId: ${req.snippetId} with error: ${e.message}")
                     errors.add(e.message ?: "Error de ejecución desconocido")
                 } catch (e: IOException) {
+                    log.error("I/O error during execution for snippetId: ${req.snippetId} with error: ${e.message}")
                     throw ProcessException("Error al leer/escribir archivo de ejecución", e)
                 }
 
                 ExecuteResDTO(req.snippetId, outputs, errors)
             }
 
+        log.info("Uploading executed snippetId: ${req.snippetId} to asset service")
         return response
     }
 
@@ -146,22 +166,29 @@ class RunnerServiceImpl(
             fileAdapter.withTempFile(req.content, getLanguageExtension(req.language)) { codeFile ->
                 val engine =
                     try {
+                        log.info("Created engine for language: ${req.language}, version: ${req.version}")
                         createEngine(req.language, req.version)
                     } catch (e: IllegalArgumentException) {
+                        log.error("Failed to create engine for language: ${req.language}, version: ${req.version}")
                         throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
                     }
 
                 try {
+                    log.info("Validating syntax for snippetId: ${req.snippetId}")
                     engine.validateSyntax(codeFile.absolutePath, progressReporter)
                     ValidateResDto(req.snippetId, emptyList())
                 } catch (e: IllegalStateException) {
+                    log.error("Validation failed for snippetId: ${req.snippetId} with error: ${e.message}")
                     // 'validateSyntax' lanza 'error()'
                     throw ValidationException(e.message ?: "Error de validación desconocido", e)
                 } catch (e: IOException) {
+                    log.error("I/O error during validation for snippetId: ${req.snippetId} with error: ${e.message}")
                     throw ProcessException("Error de I/O durante la validación", e)
                 }
             }
+        log.info("Uploading validated snippetId: ${req.snippetId} to asset service")
         assetService.upload("snippets", req.assetKey, req.content)
+        log.info("Uploaded validated snippetId: ${req.snippetId} to asset service")
         return response
     }
 
