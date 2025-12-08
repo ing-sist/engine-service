@@ -14,6 +14,7 @@ import ingsist.engine.runner.dto.FormatResDTO
 import ingsist.engine.runner.dto.LintReqDTO
 import ingsist.engine.runner.dto.LintResDTO
 import ingsist.engine.runner.dto.LintingConformanceStatusDto
+import ingsist.engine.runner.dto.SupportedLanguageDto
 import ingsist.engine.runner.dto.ValidateReqDto
 import ingsist.engine.runner.dto.ValidateResDto
 import ingsist.engine.runner.utils.FileAdapter
@@ -33,6 +34,15 @@ class RunnerServiceImpl(
     private val objectMapper: ObjectMapper,
     private val lintingconformanceProducer: LintingConformanceProducer,
 ) : RunnerService {
+    private val supportedLanguages =
+        listOf(
+            SupportedLanguageDto("printscript", listOf("1.0", "1.1"), "ps"),
+        )
+
+    override fun getSupportedLanguages(): List<SupportedLanguageDto> {
+        return supportedLanguages
+    }
+
     override fun lintSnippet(req: LintReqDTO): LintResDTO {
         @Suppress("UNCHECKED_CAST")
         val configMap =
@@ -42,8 +52,9 @@ class RunnerServiceImpl(
             fileAdapter.withTempFiles(
                 req.content,
                 configMap,
+                getLanguageExtension(req.language),
             ) { codeFile, configFile ->
-                val engine = createEngine(req.version)
+                val engine = createEngine(req.language, req.version)
                 engine.setAnalyzerConfig(configFile.absolutePath)
                 val report = engine.analyze(codeFile.absolutePath, progressReporter)
 
@@ -70,10 +81,14 @@ class RunnerServiceImpl(
         @Suppress("UNCHECKED_CAST")
         val configMap = objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
         val response =
-            fileAdapter.withTempFiles(req.content, configMap) { codeFile, configFile ->
+            fileAdapter.withTempFiles(
+                req.content,
+                configMap,
+                getLanguageExtension(req.language),
+            ) { codeFile, configFile ->
                 val engine =
                     try {
-                        createEngine(req.version)
+                        createEngine(req.language, req.version)
                     } catch (e: IllegalArgumentException) {
                         throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
                     }
@@ -99,10 +114,10 @@ class RunnerServiceImpl(
 
     override fun executeSnippet(req: ExecuteReqDTO): ExecuteResDTO {
         val response =
-            fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
+            fileAdapter.withTempFile(req.content, getLanguageExtension(req.language)) { codeFile ->
                 val engine =
                     try {
-                        createEngine(req.version)
+                        createEngine(req.language, req.version)
                     } catch (e: IllegalArgumentException) {
                         throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
                     }
@@ -128,10 +143,10 @@ class RunnerServiceImpl(
 
     override fun validateSnippet(req: ValidateReqDto): ValidateResDto {
         val response =
-            fileAdapter.withTempFile(req.content, ".ps") { codeFile ->
+            fileAdapter.withTempFile(req.content, getLanguageExtension(req.language)) { codeFile ->
                 val engine =
                     try {
-                        createEngine(req.version)
+                        createEngine(req.language, req.version)
                     } catch (e: IllegalArgumentException) {
                         throw ValidationException("Version '${req.version}' is not a valid version for PrintScript.", e)
                     }
@@ -150,10 +165,36 @@ class RunnerServiceImpl(
         return response
     }
 
-    private fun createEngine(version: String): PrintScriptEngine {
-        return PrintScriptEngine().apply {
-            setVersion(version)
+    private fun createEngine(
+        language: String,
+        version: String,
+    ): PrintScriptEngine {
+        validateLanguageSupport(language, version)
+
+        return when (language.lowercase()) {
+            "printscript" -> PrintScriptEngine().apply { setVersion(version) }
+            else -> throw ValidationException("Engine definition missing for language '$language'")
         }
+    }
+
+    private fun validateLanguageSupport(
+        language: String,
+        version: String,
+    ) {
+        val langConfig =
+            supportedLanguages.find { it.name.equals(language, ignoreCase = true) }
+                ?: throw ValidationException("Language '$language' is not supported by this engine.")
+
+        if (!langConfig.version.contains(version)) {
+            throw ValidationException("Version '$version' is not supported for language '$language'.")
+        }
+    }
+
+    private fun getLanguageExtension(language: String): String {
+        val langConfig =
+            supportedLanguages.find { it.name.equals(language, ignoreCase = true) }
+                ?: throw ValidationException("Language '$language' is not supported by this engine.")
+        return ".${langConfig.extension}"
     }
 
     private fun mapReportToLintResponse(

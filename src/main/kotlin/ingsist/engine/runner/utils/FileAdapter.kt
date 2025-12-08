@@ -27,9 +27,10 @@ class FileAdapter {
     fun <T> withTempFiles(
         codeContent: String,
         configContent: Any,
+        suffix: String = ".ps",
         block: (codeFile: File, configFile: File) -> T,
     ): T {
-        val codeFile = createTempFile(codeContent, ".ps")
+        val codeFile = createTempFile(codeContent, suffix)
         val configFile = createTempFile(mapper.writeValueAsString(configContent), ".json")
 
         try {

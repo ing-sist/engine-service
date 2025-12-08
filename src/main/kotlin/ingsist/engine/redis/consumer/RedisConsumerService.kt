@@ -20,6 +20,7 @@ class RedisConsumerService(
                 snippet.assetKey,
                 content,
                 snippet.version,
+                snippet.language,
                 snippet.config,
             ),
         )
@@ -33,6 +34,7 @@ class RedisConsumerService(
                 snippet.assetKey,
                 content,
                 snippet.version,
+                snippet.language,
                 snippet.config,
             ),
         )

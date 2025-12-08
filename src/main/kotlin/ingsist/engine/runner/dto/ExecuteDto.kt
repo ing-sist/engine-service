@@ -6,6 +6,7 @@ data class ExecuteReqDTO(
     val snippetId: UUID,
     val content: String,
     val version: String,
+    val language: String,
 )
 
 data class ExecuteResDTO(

@@ -7,6 +7,7 @@ data class LintReqDTO(
     val assetKey: String,
     val content: String,
     val version: String,
+    val language: String,
     val config: OwnerConfigDto,
 )
 
