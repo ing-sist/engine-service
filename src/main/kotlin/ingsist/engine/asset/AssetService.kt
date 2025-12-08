@@ -46,7 +46,7 @@ class AssetService(private val assetRestClient: RestClient) : AssetServiceInterf
                 .retrieve()
                 .toEntity(String::class.java)
         return when (response.statusCode.value()) {
-            201 -> {
+            200, 201, 204 -> {
                 log.info("Asset deleted successfully in $container with key $key")
                 "Asset deleted successfully in $container with key $key"
             }
