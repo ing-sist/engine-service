@@ -4,7 +4,8 @@ import java.util.UUID
 
 data class ExecuteReqDTO(
     val snippetId: UUID,
-    val content: String,
+    val assetKey: String,
+    val inputs: MutableList<String>,
     val version: String,
     val language: String,
 )

@@ -27,8 +27,8 @@ class FormattingSnippetConsumer
         companion object {
             private const val CORRELATION_ID_KEY = "correlation-id"
         }
-
-        override fun options(): StreamReceiver.StreamReceiverOptions<
+        
+        public override fun options(): StreamReceiver.StreamReceiverOptions<
             String,
             ObjectRecord<String, String>,
         > {
@@ -38,7 +38,7 @@ class FormattingSnippetConsumer
                 .build()
         }
 
-        override fun onMessage(record: ObjectRecord<String, String>) {
+        public override fun onMessage(record: ObjectRecord<String, String>) {
             val json = record.value
             val dto = objectMapper.readValue(json, StreamReqDto::class.java)
             val corrId = dto.correlationId

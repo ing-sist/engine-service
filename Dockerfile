@@ -4,26 +4,15 @@ WORKDIR /workspace
 COPY . .
 
 # Args para credenciales de GitHub Packages
-ARG GPR_USER
-ARG GPR_KEY
+ARG USERNAME
+ARG TOKEN
 
-ENV GPR_USER=$GPR_USER
-ENV GPR_KEY=$GPR_KEY
+ENV USERNAME=$USERNAME
+ENV TOKEN=$TOKEN
 
 # Aseguramos que el wrapper sea ejecutable y construimos el jar ejecutable
 RUN chmod +x ./gradlew \
     && ./gradlew --no-daemon bootJar
-
-FROM eclipse-temurin:21-jre
-
-WORKDIR /app
-EXPOSE 8081
-
-COPY --from=build /workspace/build/libs/*.jar /app/spring-boot-application.jar
-
-RUN mkdir -p /usr/local/newrelic
-ADD ./newrelic/newrelic.jar /usr/local/newrelic/newrelic.jar
-ADD ./newrelic/newrelic.yml /usr/local/newrelic/newrelic.yml
 
 FROM eclipse-temurin:21-jre
 

@@ -50,7 +50,7 @@ class RunnerServiceImpl(
     override fun lintSnippet(req: LintReqDTO): LintResDTO {
         @Suppress("UNCHECKED_CAST")
         val configMap =
-            objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
+            objectMapper.convertValue(req.config.linting, Map::class.java) as Map<String, Any>
 
         val response =
             fileAdapter.withTempFiles(
@@ -86,7 +86,7 @@ class RunnerServiceImpl(
 
     override fun formatSnippet(req: FormatReqDTO): FormatResDTO {
         @Suppress("UNCHECKED_CAST")
-        val configMap = objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
+        val configMap = objectMapper.convertValue(req.config.formatting, Map::class.java) as Map<String, Any>
         val response =
             fileAdapter.withTempFiles(
                 req.content,
@@ -121,14 +121,16 @@ class RunnerServiceImpl(
             }
 
         log.info("Uploading formatted snippetId: ${req.snippetId} to asset service")
-        assetService.upload("snippets", req.assetKey, req.content)
+        assetService.upload("snippets", req.assetKey, response.content)
         log.info("Uploaded formatted snippetId: ${req.snippetId} to asset service")
         return response
     }
 
     override fun executeSnippet(req: ExecuteReqDTO): ExecuteResDTO {
+        val content = assetService.get("snippets", req.assetKey)
+
         val response =
-            fileAdapter.withTempFile(req.content, getLanguageExtension(req.language)) { codeFile ->
+            fileAdapter.withTempFile(content, getLanguageExtension(req.language)) { codeFile ->
                 val engine =
                     try {
                         log.info("Created engine for language: ${req.language}, version: ${req.version}")
@@ -142,7 +144,9 @@ class RunnerServiceImpl(
 
                 try {
                     log.info("Executing snippetId: ${req.snippetId}")
-                    val output = engine.execute(codeFile.absolutePath, progressReporter)
+
+                    val output = engine.execute(codeFile.absolutePath, progressReporter, req.inputs)
+
                     if (output.isNotEmpty()) {
                         outputs.addAll(output.lines())
                     }
@@ -179,7 +183,6 @@ class RunnerServiceImpl(
                     ValidateResDto(req.snippetId, emptyList())
                 } catch (e: IllegalStateException) {
                     log.error("Validation failed for snippetId: ${req.snippetId} with error: ${e.message}")
-                    // 'validateSyntax' lanza 'error()'
                     throw ValidationException(e.message ?: "Error de validación desconocido", e)
                 } catch (e: IOException) {
                     log.error("I/O error during validation for snippetId: ${req.snippetId} with error: ${e.message}")
@@ -239,7 +242,6 @@ class RunnerServiceImpl(
     }
 
     override fun getSnippetCode(assetKey: String): String {
-        // Obtenemos el archivo del bucket/storage
         return assetService.get("snippets", assetKey)
     }
 
