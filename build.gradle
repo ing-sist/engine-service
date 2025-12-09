@@ -43,7 +43,7 @@ java {
     }
 }
 
-def psVersion = "8.0"
+def psVersion = "9.0"
 def psModules = [
         "lexer",
         "formatter",
