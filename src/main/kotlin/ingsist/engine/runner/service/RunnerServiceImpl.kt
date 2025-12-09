@@ -121,7 +121,7 @@ class RunnerServiceImpl(
             }
 
         log.info("Uploading formatted snippetId: ${req.snippetId} to asset service")
-        assetService.upload("snippets", req.assetKey, req.content)
+        assetService.upload("snippets", req.assetKey, response.content)
         log.info("Uploaded formatted snippetId: ${req.snippetId} to asset service")
         return response
     }
