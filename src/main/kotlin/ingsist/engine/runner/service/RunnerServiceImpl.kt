@@ -50,7 +50,7 @@ class RunnerServiceImpl(
     override fun lintSnippet(req: LintReqDTO): LintResDTO {
         @Suppress("UNCHECKED_CAST")
         val configMap =
-            objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
+            objectMapper.convertValue(req.config.linting, Map::class.java) as Map<String, Any>
 
         val response =
             fileAdapter.withTempFiles(
@@ -86,7 +86,7 @@ class RunnerServiceImpl(
 
     override fun formatSnippet(req: FormatReqDTO): FormatResDTO {
         @Suppress("UNCHECKED_CAST")
-        val configMap = objectMapper.convertValue(req.config, Map::class.java) as Map<String, Any>
+        val configMap = objectMapper.convertValue(req.config.formatting, Map::class.java) as Map<String, Any>
         val response =
             fileAdapter.withTempFiles(
                 req.content,
