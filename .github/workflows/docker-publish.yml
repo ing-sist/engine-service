@@ -46,6 +46,7 @@ jobs:
           key: ${{ secrets.SNIPPET_VM_DEV_SSH_KEY }}
           script: |
             cd infra
-            docker pull ghcr.io/${{github.repository}}-${{github.ref_name}}:latest
+            docker-compose -f docker-compose.dev.yml down
+            docker pull ghcr.io/${{github.repository}}:${{github.ref_name}}-latest
             docker-compose -f docker-compose.dev.yml up -d
 
