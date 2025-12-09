@@ -27,7 +27,7 @@ class FormattingSnippetConsumer
         companion object {
             private const val CORRELATION_ID_KEY = "correlation-id"
         }
-        
+
         public override fun options(): StreamReceiver.StreamReceiverOptions<
             String,
             ObjectRecord<String, String>,
