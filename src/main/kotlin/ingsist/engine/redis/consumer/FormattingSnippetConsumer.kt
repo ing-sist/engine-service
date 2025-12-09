@@ -23,7 +23,7 @@ class FormattingSnippetConsumer
         private val formattingService: ConsumerStreamService,
         private val objectMapper: ObjectMapper,
     ) : RedisStreamConsumer<String>(streamKey, groupId, redis) {
-        override fun options(): StreamReceiver.StreamReceiverOptions<
+        public override fun options(): StreamReceiver.StreamReceiverOptions<
             String,
             ObjectRecord<String, String>,
         > {
@@ -33,7 +33,7 @@ class FormattingSnippetConsumer
                 .build()
         }
 
-        override fun onMessage(record: ObjectRecord<String, String>) {
+        public override fun onMessage(record: ObjectRecord<String, String>) {
             val json = record.value
             val dto = objectMapper.readValue(json, StreamReqDto::class.java)
             formattingService.formatAndSaveSnippet(dto)
